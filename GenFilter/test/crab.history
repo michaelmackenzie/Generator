@@ -1,0 +1,12 @@
+131003_022446: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -create
+131003_022808: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -create
+131003_023221: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -submit -c CRABS/TTbarToFCNHiggsToWW_semihadronic_M-125_v1/
+131003_023410: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -create
+131003_023545: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -create
+131003_023707: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -submit -c CRABS/TTbarToFCNHiggsToWW_semihadronic_M-125_v1/
+131003_130522: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -status -c /uscms/home/naodell/nobackup/CRABS/GEN/TTbarToFCNHiggsToWW_semihadronic_M-125_v1/
+131003_130606: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -get -c /uscms/home/naodell/nobackup/CRABS/GEN/TTbarToFCNHiggsToWW_semihadronic_M-125_v1/
+131003_130736: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -status -c /uscms/home/naodell/nobackup/CRABS/GEN/TTbarToFCNHiggsToWW_semihadronic_M-125_v1/
+131003_141312: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -resubmit 12-15,17-18,20,313,316,327,343,371,22,132,143-144,171,195,207,311,163,342,355,393,401,422,470,16,21,25-26,28,30-32,35,37,102,129,134,137-140,142,172-173,184-187,190,197-198,200,203-204,218,224,317,323,325-326,328,332,339-340,364,367,372,375-376,428-429,7,23,181,494-495,499-500,318,427,3,6,47,53,70,79,110,119,147,158,160,170,174,176,180,188,199,209,228-229,232,237-238,242,245-247,253,269,283,290,302,305,307,309-310,315,319-320,333,335,354,374,377-382,400,405,430-431,433,441,443,445,450,453,472-474,478,482-483,485-486,488-489 -c /uscms/home/naodell/nobackup/CRABS/GEN/TTbarToFCNHiggsToWW_semihadronic_M-125_v1/
+131003_150431: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -status -c /uscms/home/naodell/nobackup/CRABS/GEN/TTbarToFCNHiggsToWW_semihadronic_M-125_v1
+131003_162416: /uscmst1/prod/grid/CRAB_2_9_1/python/crab.py -status -c /uscms/home/naodell/nobackup/CRABS/GEN/TTbarToFCNHiggsToWW_semihadronic_M-125_v1

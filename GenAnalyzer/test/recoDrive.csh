@@ -1,0 +1,1 @@
+cmsDriver.py H125toZG_7TeV_cfi.py -s RAW2DIGI,RECO --infile= --conditions auto:mc --pileup mix_E7TeV_Fall2011_Reprocess_50ns_PoissonOOTPU_cfi --datatier 'GEN-SIM-RECO' --eventcontent RECOSIM -n 1000 --no_exec
