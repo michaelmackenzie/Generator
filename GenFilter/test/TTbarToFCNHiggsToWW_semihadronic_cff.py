@@ -5,6 +5,8 @@
 # with command line options: TTToHqToWWqTo2L2Nuq_M_125_TuneZ2_7TeV_pythia6_cff.py -s GEN,SIM,DIGI,L1,DIGI2RAW,HLT,RAW2DIGI,RECO --conditions auto:mc --pileup mix_E7TeV_Fall2011_Reprocess_50ns_PoissonOOTPU_cfi --datatier GEN-SIM-RECO --eventcontent RECOSIM -n 100000 --no_exec
 import FWCore.ParameterSet.Config as cms
 
+doFullReco = True
+
 process = cms.Process('HLT')
 
 # import of standard configurations
@@ -34,7 +36,7 @@ process.maxEvents = cms.untracked.PSet(
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = 'INFO'
-process.MessageLogger.cerr.FwkReport.reportEvery = 10
+process.MessageLogger.cerr.FwkReport.reportEvery = 100
 
 # Input source
 process.source = cms.Source("EmptySource")
@@ -177,12 +179,15 @@ process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 
 # Schedule definition
 # Full reconstruction
-process.schedule = cms.Schedule(process.generation_step, process.genfiltersummary_step,process.simulation_step,process.digitisation_step,process.L1simulation_step,process.digi2raw_step)
-process.schedule.extend(process.HLTSchedule)
-process.schedule.extend([process.raw2digi_step,process.reconstruction_step,process.endjob_step, process.RECOSIMoutput_step])
-
-# Just generator
-#process.schedule = cms.Schedule(process.generation_step, process.genfiltersummary_step, process.endjob_step, process.RECOSIMoutput_step)
+if doFullReco:
+    # Schedule definition
+    # Full reconstruction
+    process.schedule = cms.Schedule(process.generation_step, process.genfiltersummary_step,process.simulation_step,process.digitisation_step,process.L1simulation_step,process.digi2raw_step)
+    process.schedule.extend(process.HLTSchedule)
+    process.schedule.extend([process.raw2digi_step,process.reconstruction_step,process.endjob_step, process.RECOSIMoutput_step])
+else:
+    # Just generator
+    process.schedule = cms.Schedule(process.generation_step, process.genfiltersummary_step, process.endjob_step, process.RECOSIMoutput_step)
 
 # filter all paths with the production filter sequence
 for path in process.paths:

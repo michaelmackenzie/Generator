@@ -90,6 +90,7 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
     iEvent.getByLabel("genParticles", genParticleColl);
 
     unsigned leptonCount = 0;
+    unsigned higgsCount = 0;
 
     for (GenParticleCollection::const_iterator iGenPart = genParticleColl->begin(); iGenPart != genParticleColl->end(); ++iGenPart) {
         const GenParticle myParticle = GenParticle(*iGenPart);
@@ -102,6 +103,7 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
 
                 // Look for Higgs
                 if (abs(ancestor->pdgId()) == 25 && ancestor->status() == 3) {
+                    ++higgsCount;
 
                     for (unsigned i = 0; i < ancestor->numberOfDaughters(); ++i) {
                         const Candidate *ancestor2 = ancestor->daughter(i);
@@ -122,6 +124,25 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
                                     ++leptonCount;
                                 }
                             }
+                        // Looking for Zs
+                        } else if (abs(ancestor2->pdgId()) == 23 && ancestor2->status() == 3) {
+
+                            for (unsigned i = 0; i < ancestor2->numberOfDaughters(); ++i) {
+                                const Candidate *ancestor3 = ancestor2->daughter(i);
+
+                                // Looking for leptons from Z
+                                if (
+                                        abs(ancestor3-> pdgId()) == 11 
+                                        || abs(ancestor3-> pdgId()) == 13 
+                                        || abs(ancestor3-> pdgId()) == 15 
+                                   ) {
+                                    //cout  << "\t"<< ancestor3->pdgId() << endl;
+                                    ++leptonCount;
+                                }
+                            }
+                        // Looking for taus 
+                        } else if (abs(ancestor2->pdgId()) == 15 && ancestor2->status() == 3) {
+                            ++leptonCount;
                         }
                     }
                 } else if (ancestor->status() == 3) { // Should be Ws and bs
@@ -148,7 +169,9 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
         }
     }
 
-    if (leptonCount > 1) {
+
+    if (leptonCount > 1 && higgsCount == 1) {
+        //cout << leptonCount << endl;
         return true;
     } else
         return false;

@@ -67,16 +67,17 @@ class GenAnalyzer : public edm::EDAnalyzer {
         TFile*  histFile;
 
         TH1D   *h1_HiggsMass, *h1_HiggsPt, *h1_HiggsEta, *h1_HiggsPhi;
-        TH1D   *h1_W1Mass, *h1_W1Pt, *h1_W1Eta, *h1_W1Phi;
-        TH1D   *h1_W2Mass, *h1_W2Pt, *h1_W2Eta, *h1_W2Phi;
-        TH1D   *h1_W3Mass, *h1_W3Pt, *h1_W3Eta, *h1_W3Phi;
+        TH1D   *h1_TopMass, *h1_TopPt, *h1_TopEta, *h1_TopPhi;
+        //TH1D   *h1_W1Mass, *h1_W1Pt, *h1_W1Eta, *h1_W1Phi;
+        //TH1D   *h1_W2Mass, *h1_W2Pt, *h1_W2Eta, *h1_W2Phi;
+        //TH1D   *h1_W3Mass, *h1_W3Pt, *h1_W3Eta, *h1_W3Phi;
 
-        TH1D   *h1_Lepton1Mass, *h1_Lepton1Pt, *h1_Lepton1Eta, *h1_Lepton1Phi;
-        TH1D   *h1_Lepton2Mass, *h1_Lepton2Pt, *h1_Lepton2Eta, *h1_Lepton2Phi;
-        TH1D   *h1_Neutrino1Mass, *h1_Neutrino1Pt, *h1_Neutrino1Eta, *h1_Neutrino1Phi;
-        TH1D   *h1_Neutrino2Mass, *h1_Neutrino2Pt, *h1_Neutrino2Eta, *h1_Neutrino2Phi;
-        TH1D   *h1_Jet1Mass, *h1_Jet1Pt, *h1_Jet1Eta, *h1_Jet1Phi;
-        TH1D   *h1_Jet2Mass, *h1_Jet2Pt, *h1_Jet2Eta, *h1_Jet2Phi;
+        //TH1D   *h1_Lepton1Mass, *h1_Lepton1Pt, *h1_Lepton1Eta, *h1_Lepton1Phi;
+        //TH1D   *h1_Lepton2Mass, *h1_Lepton2Pt, *h1_Lepton2Eta, *h1_Lepton2Phi;
+        //TH1D   *h1_Neutrino1Mass, *h1_Neutrino1Pt, *h1_Neutrino1Eta, *h1_Neutrino1Phi;
+        //TH1D   *h1_Neutrino2Mass, *h1_Neutrino2Pt, *h1_Neutrino2Eta, *h1_Neutrino2Phi;
+        //TH1D   *h1_Jet1Mass, *h1_Jet1Pt, *h1_Jet1Eta, *h1_Jet1Phi;
+        //TH1D   *h1_Jet2Mass, *h1_Jet2Pt, *h1_Jet2Eta, *h1_Jet2Phi;
 
 };
 
@@ -106,12 +107,18 @@ void GenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
         if (abs(myParticle.pdgId()) == 6 && myParticle.status() == 3) {
             cout << "\ntop found:\t " << myParticle.pdgId() << ", " << myParticle.status() << endl;
 
+            h1_TopMass->Fill(myParticle.mass());
+            h1_TopPt->Fill(myParticle.pt());
+            h1_TopEta->Fill(myParticle.eta());
+            h1_TopPhi->Fill(myParticle.phi());
+
             for (unsigned i = 0; i < myParticle.numberOfDaughters(); ++i) {
                 const Candidate *ancestor = myParticle.daughter(i);
 
                 // Look for Higgs
                 if (abs(ancestor->pdgId()) == 25 && ancestor->status() == 3) {
                     cout  << "\t"<< ancestor->pdgId() << endl;
+
                     h1_HiggsMass->Fill(ancestor->mass());
                     h1_HiggsPt->Fill(ancestor->pt());
                     h1_HiggsEta->Fill(ancestor->eta());
@@ -119,10 +126,11 @@ void GenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
                     for (unsigned i = 0; i < ancestor->numberOfDaughters(); ++i) {
                         const Candidate *ancestor2 = ancestor->daughter(i);
+                        cout << "\t" << ancestor2->pdgId() << endl;
 
-                        // Looking for Ws
-                        if (abs(ancestor2->pdgId()) == 24 && ancestor2->status() == 3) {
-                            cout << "\t" << ancestor2->pdgId() << endl;;
+                        // Looking for Ws, Zs, or taus
+                        if ((abs(ancestor2->pdgId()) == 24 || abs(ancestor2->pdgId()) == 23 || abs(ancestor2->pdgId()) == 15) && ancestor2->status() == 3) {
+                            cout << "\t" << ancestor2->pdgId() << endl;
 
                             for (unsigned i = 0; i < ancestor2->numberOfDaughters(); ++i) {
                                 const Candidate *ancestor3 = ancestor2->daughter(i);
@@ -177,10 +185,15 @@ void GenAnalyzer::beginJob()
 {
     histFile        = new TFile("histFile.root", "RECREATE");
 
-    h1_HiggsMass    = new TH1D("h1_HiggsMass", "M_{h};M_{h};Entries / 1 GeV", 50, 100., 150.);
-    h1_HiggsPt      = new TH1D("h1_HiggsPt", "p_{T,h};p_{T,h};Entries / 2 GeV", 50, 0., 100.);
+    h1_HiggsMass    = new TH1D("h1_HiggsMass", "M_{h};M_{h};Entries / 1 GeV", 50, 120., 130.);
+    h1_HiggsPt      = new TH1D("h1_HiggsPt", "p_{T,h};p_{T,h};Entries / 2 GeV", 50, 0., 250.);
     h1_HiggsEta     = new TH1D("h1_HiggsEta", "#eta_{h};#eta_{h};Entries / bin", 50, -10., 10.);
     h1_HiggsPhi     = new TH1D("h1_HiggsPhi", "#phi_{h};#phi_{h};Entries / bin", 36, -TMath::Pi(), TMath::Pi());
+
+    h1_TopMass      = new TH1D("h1_TopMass", "M_{h};M_{h};Entries / 1 GeV", 50, 150., 200.);
+    h1_TopPt        = new TH1D("h1_TopPt", "p_{T,h};p_{T,h};Entries / 2 GeV", 50, 0., 250.);
+    h1_TopEta       = new TH1D("h1_TopEta", "#eta_{h};#eta_{h};Entries / bin", 50, -10., 10.);
+    h1_TopPhi       = new TH1D("h1_TopPhi", "#phi_{h};#phi_{h};Entries / bin", 36, -TMath::Pi(), TMath::Pi());
 
     //h1_W1Mass       = new TH1D("h1_W1Mass", "M_{W1};M_{W1};Entries / 1 GeV", 50, 0., 100.);
     //h1_W1Pt         = new TH1D("h1_W1Pt", "p_{T,h};p_{T,h};Entries / 2 GeV", 50, 0., 100.);
@@ -195,6 +208,15 @@ void GenAnalyzer::beginJob()
 
 void GenAnalyzer::endJob() 
 {
+    h1_HiggsMass->Write(); // p00p
+    h1_HiggsPt->Write(); // p00p
+    h1_HiggsEta->Write(); // p00p
+    h1_HiggsPhi->Write(); // p00p
+    h1_TopMass->Write(); // p00p
+    h1_TopPt->Write(); // p00p
+    h1_TopEta->Write(); // p00p
+    h1_TopPhi->Write(); // p00p
+
     histFile->Write();
     histFile->Close();
 }
