@@ -50,6 +50,7 @@ process.configurationMetadata = cms.untracked.PSet(
 )
 
 # Output definition
+
 process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
@@ -106,11 +107,11 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
             'MSTP(7)   = 6           ! flavor = top', 
             'PMAS(6,1) = 172.5       ! top quark mass', 
             'MDME(45,1)=2            ! t decay into Ws', 
-            'KFDP(45,1)=25           ! change W to Higgs (hopefully) ', 
-            'KFDP(45,2)=4            ! change s to c quark', 
+            #'KFDP(45,1)=25           ! change W to Higgs (hopefully) ', 
+            #'KFDP(45,2)=4            ! change s to c quark', 
             'MDME(46,1)=3            ! t decay', 
-            #'KFDP(46,1)=25           ! change W to Higgs (hopefully) ', 
-            #'KFDP(46,2)=4            ! change s to c quark', 
+            'KFDP(46,1)=25           ! change W to Higgs (hopefully) ', 
+            'KFDP(46,2)=4            ! change s to c quark', 
 
             'MSUB(102)=0             !ggH', 
             'MSUB(123)=0             !ZZ fusion to H', 
@@ -130,13 +131,13 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
             'MDME(217,1)=0           !Higgs decay into Higgs decay', 
             'MDME(218,1)=0           !Higgs decay into e nu e', 
             'MDME(219,1)=0           !Higgs decay into mu nu mu', 
-            'MDME(220,1)=0           !Higgs decay into tau nu tau', 
+            'MDME(220,1)=1           !Higgs decay into tau nu tau', 
             'MDME(221,1)=0           !Higgs decay into Higgs decay', 
             'MDME(222,1)=0           !Higgs decay into g g', 
             'MDME(223,1)=0           !Higgs decay into gam gam', 
             'MDME(224,1)=0           !Higgs decay into gam Z', 
             'MDME(225,1)=0           !Higgs decay into Z Z', 
-            'MDME(226,1)=1           !Higgs decay into W W', 
+            'MDME(226,1)=0           !Higgs decay into W W', 
 
             'MDME(182,1)=1           !Z decay into e- e+', 
             'MDME(183,1)=0           !Z decay into nu_e nu_ebar', 
@@ -144,14 +145,14 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
             'MDME(185,1)=0           !Z decay into nu_mu nu_mubar', 
             'MDME(186,1)=1           !Z decay into tau- tau+', 
 
-            'MDME(190,1) = 1         !W decay into dbar u', 
-            'MDME(191,1) = 1         !W decay into dbar c', 
+            'MDME(190,1) = 0         !W decay into dbar u', 
+            'MDME(191,1) = 0         !W decay into dbar c', 
             'MDME(192,1) = 0         !W decay into dbar t', 
-            'MDME(194,1) = 1         !W decay into sbar u', 
-            'MDME(195,1) = 1         !W decay into sbar c', 
+            'MDME(194,1) = 0         !W decay into sbar u', 
+            'MDME(195,1) = 0         !W decay into sbar c', 
             'MDME(196,1) = 0         !W decay into sbar t', 
-            'MDME(198,1) = 1         !W decay into bbar u', 
-            'MDME(199,1) = 1         !W decay into bbar c', 
+            'MDME(198,1) = 0         !W decay into bbar u', 
+            'MDME(199,1) = 0         !W decay into bbar c', 
             'MDME(200,1) = 0         !W decay into bbar t', 
             'MDME(205,1) = 0         !W decay into bbar tp', 
             'MDME(206,1) = 1         !W decay into e+ nu_e', 
@@ -165,7 +166,7 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
 process.dileptonFilter = cms.EDFilter('GenFilter') 
 
 # Path and EndPath definitions
-process.generation_step = cms.Path(process.pgen * process.dileptonFilter)
+process.generation_step = cms.Path(process.pgen)# * process.dileptonFilter)
 process.simulation_step = cms.Path(process.psim)
 process.digitisation_step = cms.Path(process.pdigi)
 process.L1simulation_step = cms.Path(process.SimL1Emulator)

@@ -3,9 +3,10 @@
 # Revision: 1.341 
 # Source: /cvs_server/repositories/CMSSW/CMSSW/Configuration/PyReleaseValidation/python/ConfigBuilder.py,v 
 # with command line options: TTToHqToWWqTo2L2Nuq_M_125_TuneZ2_7TeV_pythia6_cff.py -s GEN,SIM,DIGI,L1,DIGI2RAW,HLT,RAW2DIGI,RECO --conditions auto:mc --pileup mix_E7TeV_Fall2011_Reprocess_50ns_PoissonOOTPU_cfi --datatier GEN-SIM-RECO --eventcontent RECOSIM -n 100000 --no_exec
-import FWCore.ParameterSet.Config as cms
 
 doFullReco = True
+
+import FWCore.ParameterSet.Config as cms
 
 process = cms.Process('HLT')
 
@@ -31,12 +32,14 @@ process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
 process.maxEvents = cms.untracked.PSet(
+    #input = cms.untracked.int32(10000)
     input = cms.untracked.int32(10)
 )
 
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 process.MessageLogger.cerr.threshold = 'INFO'
-process.MessageLogger.cerr.FwkReport.reportEvery = 100
+process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+#process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 # Input source
 process.source = cms.Source("EmptySource")
@@ -50,10 +53,12 @@ process.configurationMetadata = cms.untracked.PSet(
 )
 
 # Output definition
+
 process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.RECOSIMEventContent.outputCommands,
+    #fileName = cms.untracked.string('/tmp/naodell/SIM.root'),
     fileName = cms.untracked.string('SIM.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
@@ -106,10 +111,10 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
             'MSTP(7)   = 6           ! flavor = top', 
             'PMAS(6,1) = 172.5       ! top quark mass', 
             'MDME(45,1)=2            ! t decay into Ws', 
-            'KFDP(45,1)=25           ! change W to Higgs (hopefully) ', 
+            'KFDP(45,1)=25           ! change W+ to Higgs (hopefully) ', 
             'KFDP(45,2)=4            ! change s to c quark', 
             'MDME(46,1)=3            ! t decay', 
-            #'KFDP(46,1)=25           ! change W to Higgs (hopefully) ', 
+            #'KFDP(46,1)=25           ! change W- to Higgs (hopefully) ', 
             #'KFDP(46,2)=4            ! change s to c quark', 
 
             'MSUB(102)=0             !ggH', 
@@ -144,14 +149,14 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
             'MDME(185,1)=0           !Z decay into nu_mu nu_mubar', 
             'MDME(186,1)=1           !Z decay into tau- tau+', 
 
-            'MDME(190,1) = 1         !W decay into dbar u', 
-            'MDME(191,1) = 1         !W decay into dbar c', 
+            'MDME(190,1) = 0         !W decay into dbar u', 
+            'MDME(191,1) = 0         !W decay into dbar c', 
             'MDME(192,1) = 0         !W decay into dbar t', 
-            'MDME(194,1) = 1         !W decay into sbar u', 
-            'MDME(195,1) = 1         !W decay into sbar c', 
+            'MDME(194,1) = 0         !W decay into sbar u', 
+            'MDME(195,1) = 0         !W decay into sbar c', 
             'MDME(196,1) = 0         !W decay into sbar t', 
-            'MDME(198,1) = 1         !W decay into bbar u', 
-            'MDME(199,1) = 1         !W decay into bbar c', 
+            'MDME(198,1) = 0         !W decay into bbar u', 
+            'MDME(199,1) = 0         !W decay into bbar c', 
             'MDME(200,1) = 0         !W decay into bbar t', 
             'MDME(205,1) = 0         !W decay into bbar tp', 
             'MDME(206,1) = 1         !W decay into e+ nu_e', 
@@ -176,8 +181,6 @@ process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
 
-# Schedule definition
-# Full reconstruction
 if doFullReco:
     # Schedule definition
     # Full reconstruction
