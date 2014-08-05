@@ -30,9 +30,7 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring('file:FCNH_GEN.root')
 )
 
-process.options = cms.untracked.PSet(
-
-)
+process.options = cms.untracked.PSet( )
 
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(

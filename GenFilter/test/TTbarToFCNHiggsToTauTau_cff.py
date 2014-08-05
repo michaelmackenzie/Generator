@@ -5,28 +5,21 @@
 # with command line options: TTToHqToWWqTo2L2Nuq_M_125_TuneZ2_7TeV_pythia6_cff.py -s GEN,SIM,DIGI,L1,DIGI2RAW,HLT,RAW2DIGI,RECO --conditions auto:mc --pileup mix_E7TeV_Fall2011_Reprocess_50ns_PoissonOOTPU_cfi --datatier GEN-SIM-RECO --eventcontent RECOSIM -n 100000 --no_exec
 import FWCore.ParameterSet.Config as cms
 
-doFullReco = True
-
-process = cms.Process('HLT')
+process = cms.Process('GEN')
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
 process.load('SimGeneral.HepPDTESSource.pythiapdt_cfi')
 process.load('FWCore.MessageService.MessageLogger_cfi')
 process.load('Configuration.EventContent.EventContent_cff')
-process.load('SimGeneral.MixingModule.mix_2012_Summer_50ns_PoissonOOTPU_cfi')
-process.load('Configuration.StandardSequences.GeometryDB_cff')
+process.load('SimGeneral.MixingModule.mixNoPU_cfi')
+process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
+process.load('Configuration.StandardSequences.GeometrySimDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
-process.load('Configuration.StandardSequences.Generator_cff')
-process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic8TeV2012Collision_cfi')
-process.load('GeneratorInterface.Core.genFilterSummary_cff')
 process.load('Configuration.StandardSequences.SimIdeal_cff')
-process.load('Configuration.StandardSequences.Digi_cff')
-process.load('Configuration.StandardSequences.SimL1Emulator_cff')
-process.load('Configuration.StandardSequences.DigiToRaw_cff')
-process.load('HLTrigger.Configuration.HLT_GRun_cff')
-process.load('Configuration.StandardSequences.RawToDigi_cff')
-process.load('Configuration.StandardSequences.Reconstruction_cff')
+process.load('Configuration.StandardSequences.Generator_cff')
+process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic8TeVCollision_cfi')
+process.load('GeneratorInterface.Core.genFilterSummary_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
@@ -45,20 +38,19 @@ process.options = cms.untracked.PSet()
 # Production Info
 process.configurationMetadata = cms.untracked.PSet(
     version = cms.untracked.string('$Revision: 1.341 $'),
-    annotation = cms.untracked.string('TTToHqTobbq_M_125_TuneZ2_8TeV_pythia6_cff.py nevts:100000'),
+    annotation = cms.untracked.string('TTbarToFCNHiggsToWW_semileptonic_cff.py nevts:100000'),
     name = cms.untracked.string('PyReleaseValidation')
 )
 
 # Output definition
-
-process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
+process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
     outputCommands = process.RECOSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('SIM.root'),
+    fileName = cms.untracked.string('FCNH_TauTau_GEN-SIM.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
-        dataTier = cms.untracked.string('RECOSIM')
+        dataTier = cms.untracked.string('GEN')
     ),
     SelectEvents = cms.untracked.PSet(
         SelectEvents = cms.vstring('generation_step')
@@ -67,7 +59,9 @@ process.RECOSIMoutput = cms.OutputModule("PoolOutputModule",
 
 
 # Other statements
-process.GlobalTag.globaltag = 'START53_V7A::All'
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.genstepfilter.triggerConditions=cms.vstring("generation_step")
+process.GlobalTag = GlobalTag(process.GlobalTag, 'START53_V27::All', '')
 
 process.generator = cms.EDFilter("Pythia6GeneratorFilter",
     pythiaPylistVerbosity = cms.untracked.int32(0),
@@ -163,31 +157,17 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
     )
 )
 
-process.dileptonFilter = cms.EDFilter('GenFilter') 
+process.leptonFilter = cms.EDFilter('GenFilter') 
 
 # Path and EndPath definitions
-process.generation_step = cms.Path(process.pgen)# * process.dileptonFilter)
-process.simulation_step = cms.Path(process.psim)
-process.digitisation_step = cms.Path(process.pdigi)
-process.L1simulation_step = cms.Path(process.SimL1Emulator)
-process.digi2raw_step = cms.Path(process.DigiToRaw)
-process.raw2digi_step = cms.Path(process.RawToDigi)
-process.reconstruction_step = cms.Path(process.reconstruction)
+process.generation_step = cms.Path(process.pgen * process.leptonFilter)
 process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
+process.simulation_step = cms.Path(process.psim)
 process.endjob_step = cms.EndPath(process.endOfProcess)
-process.RECOSIMoutput_step = cms.EndPath(process.RECOSIMoutput)
+process.RAWSIMoutput_step = cms.EndPath(process.RAWSIMoutput)
 
 # Schedule definition
-# Full reconstruction
-if doFullReco:
-    # Schedule definition
-    # Full reconstruction
-    process.schedule = cms.Schedule(process.generation_step, process.genfiltersummary_step,process.simulation_step,process.digitisation_step,process.L1simulation_step,process.digi2raw_step)
-    process.schedule.extend(process.HLTSchedule)
-    process.schedule.extend([process.raw2digi_step,process.reconstruction_step,process.endjob_step, process.RECOSIMoutput_step])
-else:
-    # Just generator
-    process.schedule = cms.Schedule(process.generation_step, process.genfiltersummary_step, process.endjob_step, process.RECOSIMoutput_step)
+process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step,process.RAWSIMoutput_step,process.simulation_step,process.endjob_step)
 
 # filter all paths with the production filter sequence
 for path in process.paths:

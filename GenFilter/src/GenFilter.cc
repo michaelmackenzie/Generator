@@ -170,6 +170,7 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
     }
 
 
+    //return false;
     if (leptonCount > 1 && higgsCount == 1) {
         //cout << leptonCount << endl;
         return true;

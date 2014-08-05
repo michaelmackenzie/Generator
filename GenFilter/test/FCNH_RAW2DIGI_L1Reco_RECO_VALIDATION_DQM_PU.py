@@ -30,7 +30,7 @@ process.maxEvents = cms.untracked.PSet(
 # Input source
 process.source = cms.Source("PoolSource",
     secondaryFileNames = cms.untracked.vstring(),
-    fileNames = cms.untracked.vstring('file:FCNH_WW_REDIGI.root')
+    fileNames = cms.untracked.vstring('file:FCNH_WW_RECO1.root')
 )
 
 process.options = cms.untracked.PSet()
@@ -47,7 +47,7 @@ process.configurationMetadata = cms.untracked.PSet(
 process.AODSIMoutput = cms.OutputModule("PoolOutputModule",
     eventAutoFlushCompressedSize = cms.untracked.int32(15728640),
     outputCommands = process.AODSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('FCNH_GENRECO.root'),
+    fileName = cms.untracked.string('FCNH_WW_RECO2.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('AODSIM')
