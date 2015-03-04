@@ -5,9 +5,7 @@
 # with command line options: TTToHqToWWqTo2L2Nuq_M_125_TuneZ2_7TeV_pythia6_cff.py -s GEN,SIM,DIGI,L1,DIGI2RAW,HLT,RAW2DIGI,RECO --conditions auto:mc --pileup mix_E7TeV_Fall2011_Reprocess_50ns_PoissonOOTPU_cfi --datatier GEN-SIM-RECO --eventcontent RECOSIM -n 100000 --no_exec
 import FWCore.ParameterSet.Config as cms
 
-doFullReco = False
-
-process = cms.Process('GEN')
+process = cms.Process('SIM')
 
 # import of standard configurations
 process.load('Configuration.StandardSequences.Services_cff')
@@ -18,10 +16,10 @@ process.load('SimGeneral.MixingModule.mixNoPU_cfi')
 process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 process.load('Configuration.StandardSequences.GeometrySimDB_cff')
 process.load('Configuration.StandardSequences.MagneticField_38T_cff')
-process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.Generator_cff')
 process.load('IOMC.EventVertexGenerators.VtxSmearedRealistic8TeVCollision_cfi')
 process.load('GeneratorInterface.Core.genFilterSummary_cff')
+process.load('Configuration.StandardSequences.SimIdeal_cff')
 process.load('Configuration.StandardSequences.EndOfProcess_cff')
 process.load('Configuration.StandardSequences.FrontierConditions_GlobalTag_cff')
 
@@ -48,8 +46,8 @@ process.configurationMetadata = cms.untracked.PSet(
 process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
     splitLevel = cms.untracked.int32(0),
     eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
-    outputCommands = process.RECOSIMEventContent.outputCommands,
-    fileName = cms.untracked.string('FCNH_ZZ_GEN-SIM.root'),
+    outputCommands = process.RAWSIMEventContent.outputCommands,
+    fileName = cms.untracked.string('FCNH_GEN-SIM.root'),
     dataset = cms.untracked.PSet(
         filterName = cms.untracked.string(''),
         dataTier = cms.untracked.string('GEN')
@@ -61,9 +59,9 @@ process.RAWSIMoutput = cms.OutputModule("PoolOutputModule",
 
 
 # Other statements
-from Configuration.AlCa.GlobalTag import GlobalTag
 process.genstepfilter.triggerConditions=cms.vstring("generation_step")
-process.GlobalTag = GlobalTag(process.GlobalTag, 'START53_V27::All', '')
+from Configuration.AlCa.GlobalTag import GlobalTag
+process.GlobalTag = GlobalTag(process.GlobalTag, 'START53_V7N::All', '')
 
 process.generator = cms.EDFilter("Pythia6GeneratorFilter",
     pythiaPylistVerbosity = cms.untracked.int32(0),
@@ -104,7 +102,7 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
             'PMAS(6,1) = 172.5       ! top quark mass', 
             'MDME(45,1)=2            ! t decay into Ws', 
             'KFDP(45,1)=25           ! change W to Higgs (hopefully) ', 
-            'KFDP(45,2)=4            ! change s to c quark', 
+            'KFDP(45,2)=2            ! change s to c quark', 
             'MDME(46,1)=3            ! t decay', 
             #'KFDP(46,1)=25           ! change W to Higgs (hopefully) ', 
             #'KFDP(46,2)=4            ! change s to c quark', 
@@ -147,15 +145,15 @@ process.generator = cms.EDFilter("Pythia6GeneratorFilter",
             'MDME(186,1)=1           !Z decay into tau- tau+', 
             'MDME(187,1)=1           !Z decay into nu_tau nu_taubar', 
 
-            'MDME(190,1) = 0         !W decay into dbar u', 
-            'MDME(191,1) = 0         !W decay into dbar c', 
-            'MDME(192,1) = 0         !W decay into dbar t', 
-            'MDME(194,1) = 0         !W decay into sbar u', 
-            'MDME(195,1) = 0         !W decay into sbar c', 
-            'MDME(196,1) = 0         !W decay into sbar t', 
-            'MDME(198,1) = 0         !W decay into bbar u', 
-            'MDME(199,1) = 0         !W decay into bbar c', 
-            'MDME(200,1) = 0         !W decay into bbar t', 
+            'MDME(190,1) = 1         !W decay into dbar u', 
+            'MDME(191,1) = 1         !W decay into dbar c', 
+            'MDME(192,1) = 1         !W decay into dbar t', 
+            'MDME(194,1) = 1         !W decay into sbar u', 
+            'MDME(195,1) = 1         !W decay into sbar c', 
+            'MDME(196,1) = 1         !W decay into sbar t', 
+            'MDME(198,1) = 1         !W decay into bbar u', 
+            'MDME(199,1) = 1         !W decay into bbar c', 
+            'MDME(200,1) = 1         !W decay into bbar t', 
             'MDME(205,1) = 0         !W decay into bbar tp', 
             'MDME(206,1) = 1         !W decay into e+ nu_e', 
             'MDME(207,1) = 1         !W decay into mu+ nu_mu', 
@@ -169,15 +167,13 @@ process.leptonFilter = cms.EDFilter('GenFilter')
 
 # Path and EndPath definitions
 process.generation_step = cms.Path(process.pgen * process.leptonFilter)
-process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.simulation_step = cms.Path(process.psim)
+process.genfiltersummary_step = cms.EndPath(process.genFilterSummary)
 process.endjob_step = cms.EndPath(process.endOfProcess)
 process.RAWSIMoutput_step = cms.EndPath(process.RAWSIMoutput)
 
 # Schedule definition
 process.schedule = cms.Schedule(process.generation_step,process.genfiltersummary_step,process.RAWSIMoutput_step,process.simulation_step,process.endjob_step)
-
-# filter all paths with the production filter sequence
+# filter all path with the production filter sequence
 for path in process.paths:
-   getattr(process,path)._seq = process.generator * getattr(process,path)._seq 
-
+    getattr(process,path)._seq = process.generator * getattr(process,path)._seq

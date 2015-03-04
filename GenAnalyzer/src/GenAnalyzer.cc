@@ -31,6 +31,9 @@ Implementation:
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 // Generator data formats
+#include "DataFormats/Math/interface/deltaR.h"
+#include "DataFormats/JetReco/interface/GenJet.h"
+#include "DataFormats/JetReco/interface/GenJetCollection.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
@@ -66,6 +69,8 @@ class GenAnalyzer : public edm::EDAnalyzer {
 
         TFile*  histFile;
 
+        TH1D* h1_JetMult;
+
         TH1D   *h1_HiggsMass, *h1_HiggsPt, *h1_HiggsEta, *h1_HiggsPhi;
         TH1D   *h1_TopMass, *h1_TopPt, *h1_TopEta, *h1_TopPhi;
         //TH1D   *h1_W1Mass, *h1_W1Pt, *h1_W1Eta, *h1_W1Phi;
@@ -99,13 +104,21 @@ void GenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
     Handle<GenParticleCollection> genParticleColl;
     iEvent.getByLabel("genParticles", genParticleColl);
-
+    
+    vector<GenParticle> leptons;
     for (GenParticleCollection::const_iterator iGenPart = genParticleColl->begin(); iGenPart != genParticleColl->end(); ++iGenPart) {
         const GenParticle myParticle = GenParticle(*iGenPart);
 
+        if (
+                (abs(myParticle.pdgId()) == 11 || abs(myParticle.pdgId()) == 13 || abs(myParticle.pdgId()) == 15)
+                && myParticle.status() == 3
+           ) {
+            leptons.push_back(myParticle);
+        }
+
         // Look for the ttbar pair
         if (abs(myParticle.pdgId()) == 6 && myParticle.status() == 3) {
-            cout << "\ntop found:\t " << myParticle.pdgId() << ", " << myParticle.status() << endl;
+            //cout << "\ntop found:\t " << myParticle.pdgId() << ", " << myParticle.status() << endl;
 
             h1_TopMass->Fill(myParticle.mass());
             h1_TopPt->Fill(myParticle.pt());
@@ -117,7 +130,7 @@ void GenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
                 // Look for Higgs
                 if (abs(ancestor->pdgId()) == 25 && ancestor->status() == 3) {
-                    cout  << "\t"<< ancestor->pdgId() << endl;
+                    //cout  << "\t"<< ancestor->pdgId() << endl;
 
                     h1_HiggsMass->Fill(ancestor->mass());
                     h1_HiggsPt->Fill(ancestor->pt());
@@ -126,35 +139,35 @@ void GenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
 
                     for (unsigned i = 0; i < ancestor->numberOfDaughters(); ++i) {
                         const Candidate *ancestor2 = ancestor->daughter(i);
-                        cout << "\t" << ancestor2->pdgId() << endl;
+                        //cout << "\t" << ancestor2->pdgId() << endl;
 
                         // Looking for Ws, Zs, or taus
                         if ((abs(ancestor2->pdgId()) == 24 || abs(ancestor2->pdgId()) == 23 || abs(ancestor2->pdgId()) == 15) && ancestor2->status() == 3) {
-                            cout << "\t" << ancestor2->pdgId() << endl;
+                            //cout << "\t" << ancestor2->pdgId() << endl;
 
                             for (unsigned i = 0; i < ancestor2->numberOfDaughters(); ++i) {
                                 const Candidate *ancestor3 = ancestor2->daughter(i);
 
                                 // Looking for leptons from W
-                                cout << "\t";
+                                //cout << "\t";
                                 if (
                                         (abs(ancestor3-> pdgId()) >= 11 && abs(ancestor3->pdgId()) <= 16) 
                                         || (abs(ancestor3-> pdgId()) >= 1 && abs(ancestor3->pdgId()) <= 5)
                                    ) {
-                                    cout << "\t" << ancestor3->pdgId();
+                                    //cout << "\t" << ancestor3->pdgId();
                                 }
                             }
-                            cout << endl;
+                            //cout << endl;
                         }
                     }
                 } else if (ancestor->status() == 3) { // Should be Ws and bs
 
-                    cout  << "\t"<< ancestor->pdgId() << endl;
+                    //cout  << "\t"<< ancestor->pdgId() << endl;
 
                     // Get the leptons from the W decay
                     if (abs(ancestor->pdgId()) == 24) {
 
-                        cout << "\t";
+                        //cout << "\t";
                         for (unsigned i = 0; i < ancestor->numberOfDaughters(); ++i) {
                             const Candidate *ancestor2 = ancestor->daughter(i);
 
@@ -163,16 +176,37 @@ void GenAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetu
                                     (abs(ancestor2-> pdgId()) >= 11 && abs(ancestor2->pdgId()) <= 16)
                                     || (abs(ancestor2-> pdgId()) >= 1 && abs(ancestor2->pdgId()) <= 5) 
                                     ) {
-                                cout << "\t" << ancestor2->pdgId();
+                                //cout << "\t" << ancestor2->pdgId();
                             }
                         }
-                        cout << endl;
+                        //cout << endl;
                     } 
                 }
             } 
         }
     }
-    cout << "----------------------" << endl;
+
+    Handle<reco::GenJetCollection> GenJets;
+    iEvent.getByLabel("ak5GenJets", GenJets);
+
+    unsigned nJets = 0;
+    for (GenJetCollection::const_iterator iJet = GenJets->begin(); iJet!= GenJets->end(); ++iJet) {
+        reco::GenJet myJet = reco::GenJet(*iJet);
+
+        bool lepOverlap = false;
+        for (unsigned i = 0; i < leptons.size(); ++i) {
+            if (deltaR(leptons[i],myJet) < 0.5) {
+                lepOverlap = true;
+                break;
+            }
+        }
+        if (myJet.pt() > 30 && !lepOverlap) {
+            ++nJets;
+        }
+    }
+    if (leptons.size() >= 1) h1_JetMult->Fill(nJets);
+
+    //cout << "----------------------" << endl;
 }
 
 //void GenAnalyzer::DrawGenHisotgrams(Candidate* particle, TString pName)
@@ -195,6 +229,7 @@ void GenAnalyzer::beginJob()
     h1_TopEta       = new TH1D("h1_TopEta", "#eta_{h};#eta_{h};Entries / bin", 50, -10., 10.);
     h1_TopPhi       = new TH1D("h1_TopPhi", "#phi_{h};#phi_{h};Entries / bin", 36, -TMath::Pi(), TMath::Pi());
 
+    h1_JetMult      = new TH1D("h1_JetMult", "total number of events, unskimmed", 10, -0.5,9.5);
     //h1_W1Mass       = new TH1D("h1_W1Mass", "M_{W1};M_{W1};Entries / 1 GeV", 50, 0., 100.);
     //h1_W1Pt         = new TH1D("h1_W1Pt", "p_{T,h};p_{T,h};Entries / 2 GeV", 50, 0., 100.);
     //h1_W1Eta        = new TH1D("h1_W1Eta", "#eta_{W1};#eta_{W1};Entries / bin", 50, -10., 10.);
@@ -216,6 +251,7 @@ void GenAnalyzer::endJob()
     h1_TopPt->Write(); // p00p
     h1_TopEta->Write(); // p00p
     h1_TopPhi->Write(); // p00p
+    h1_JetMult->Write();
 
     histFile->Write();
     histFile->Close();
