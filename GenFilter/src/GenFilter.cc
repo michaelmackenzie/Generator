@@ -71,8 +71,8 @@ private:
   vector<double> _ptmin;
   vector<double> _etamax;
   vector<double> _etamin;
-  vector<int>    _id;
-  unsigned       _naccepted; //how many are needed
+  vector<int>    _id;        //pdg id of particles of interest
+  unsigned       _naccepted; //how many final state particles are needed
   unsigned       _nhadtaus;  //how many hadronic taus are needed
   int            _verbose;
 };
@@ -91,6 +91,9 @@ GenFilter::GenFilter(const ParameterSet& iConfig):
   unsigned sizes = _id.size();
   if(_ptmin.size() != sizes || _etamin.size() != sizes || _etamax.size() != sizes)
     throw "GenFilter cut vectors have different sizes!";
+
+  if((find(_id.begin(), _id.end(), 15) == _id.end()) && _nhadtaus > 0)
+    throw "GenFilter not selecting taus but requires hadronic taus!";
   
   if(_verbose > 0) {
     printf("GenFilter::GenFilter --> Cuts for decay products of:\n");
