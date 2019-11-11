@@ -100,6 +100,8 @@ GenFilter::GenFilter(const ParameterSet& iConfig):
     for(unsigned i = 0; i < sizes ; ++i)
       printf("%i: ptmin = %.2f GeV/c, %.2f > eta > %.2f\n",
 	   _id[i], _ptmin[i], _etamax[i], _etamin[i]);
+    printf("Requiring at least %u accepted final state particles and %u hadronic taus\n",
+	   _naccepted, _nhadtaus);
   }
 }
 
