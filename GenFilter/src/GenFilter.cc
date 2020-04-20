@@ -69,27 +69,32 @@ private:
 
   // ----------member data ---------------------------
   vector<double> _ptmin;
+  vector<double> _ptminloose; //if different cut for trailing
   vector<double> _etamax;
   vector<double> _etamin;
   vector<int>    _id;        //pdg id of particles of interest
   unsigned       _naccepted; //how many final state particles are needed
+  unsigned       _nloose;    //how many loose final state particles there can be
   unsigned       _nhadtaus;  //how many hadronic taus are needed
   int            _verbose;
 };
 
 GenFilter::GenFilter(const ParameterSet& iConfig):
   _ptmin(iConfig.getUntrackedParameter<vector<double>>("ptmin"))
+  , _ptminloose(iConfig.getUntrackedParameter<vector<double>>("ptminloose"))
   , _etamax(iConfig.getUntrackedParameter<vector<double>>("etamax"))
   , _etamin(iConfig.getUntrackedParameter<vector<double>>("etamin"))
   , _id(iConfig.getUntrackedParameter<vector<int>>("id"))
   , _naccepted(iConfig.getUntrackedParameter<unsigned>("naccepted", 0))
+  , _nloose(iConfig.getUntrackedParameter<unsigned>("nloose", 0))
   , _nhadtaus(iConfig.getUntrackedParameter<unsigned>("nhadtaus", 0))
   , _verbose(iConfig.getUntrackedParameter<int>("verbose", 0))
 
 {
   //now do what ever initialization is needed
   unsigned sizes = _id.size();
-  if(_ptmin.size() != sizes || _etamin.size() != sizes || _etamax.size() != sizes)
+  if(_ptmin.size() != sizes || _etamin.size() != sizes || _etamax.size() != sizes
+     || (_ptminloose.size() > 0 && _ptminloose.size() != sizes))
     throw "GenFilter cut vectors have different sizes!";
 
   if((find(_id.begin(), _id.end(), 15) == _id.end()) && _nhadtaus > 0)
@@ -102,6 +107,15 @@ GenFilter::GenFilter(const ParameterSet& iConfig):
 	   _id[i], _ptmin[i], _etamax[i], _etamin[i]);
     printf("Requiring at least %u accepted final state particles and %u hadronic taus\n",
 	   _naccepted, _nhadtaus);
+
+    if(_ptminloose.size() > 0) {
+      printf("GenFilter::GenFilter --> Loose cuts for decay products of:\n");
+      for(unsigned i = 0; i < sizes ; ++i)
+	printf("%i: ptmin = %.2f GeV/c (%.2f > eta > %.2f)\n",
+	       _id[i], _ptminloose[i], _etamax[i], _etamin[i]);
+      printf("Allowing up to %u accepted loose final state particles\n",
+	     _nloose);
+    }
   }
 }
 
@@ -121,6 +135,7 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
   iEvent.getByLabel("genParticles", genParticleColl);
 
   unsigned acceptCount = 0; //counting accepted final state particles
+  unsigned looseCount = 0; //counting accepted loose final state particles
   unsigned hadTauCount = 0; //counting accepted hadronic taus
   unsigned particleCount = 0;
 
@@ -218,6 +233,17 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
 		 myParticle.pdgId(), myParticle.status(), myParticle.pt(),
 		 myParticle.eta(), myParticle.mass(),
 		 myParticle.numberOfDaughters());
+      } else if(_ptminloose.size() > 0 && //loose cuts
+		myParticle.pt()  > _ptminloose[index] &&
+		myParticle.eta() > _etamin[index] &&
+		myParticle.eta() < _etamax[index]) {
+	++looseCount;
+	if(_verbose > 1)
+	  printf("%4u:   %5i,    %2i, %8.2f, %12.2f, %8.2f, %3lu (Loose Accepted)\n",
+		 particleCount,
+		 myParticle.pdgId(), myParticle.status(), myParticle.pt(),
+		 myParticle.eta(), myParticle.mass(),
+		 myParticle.numberOfDaughters());
       } else if(_verbose > 2)
 	printf("%4u:   %5i,    %2i, %8.2f, %12.2f, %8.2f, %3lu (Rejected)\n",
 	       particleCount,
@@ -230,7 +256,8 @@ bool GenFilter::filter(Event& iEvent, const EventSetup& iSetup)
   
 
 
-  return (acceptCount >= _naccepted) && (hadTauCount >= _nhadtaus);
+  return (acceptCount >= _naccepted || (looseCount+acceptCount >= _naccepted && acceptCount >= _naccepted-_nloose))
+	  && (hadTauCount >= _nhadtaus);
 }
 
 // ------------ method called once each job just before starting event loop  ------------
